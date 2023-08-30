@@ -5,8 +5,9 @@ import com.example.library.models.Person;
 import com.example.library.repositories.BooksRepository;
 import com.example.library.services.BookService;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +22,25 @@ public class BookServiceImpl implements BookService {
     private final BooksRepository booksRepository;
 
     @Override
-    public List<Book> finaAll() {
+    public List<Book> findAll(Integer page, Integer booksPerPage, boolean isSortedByYear) {
+        if (page == null || booksPerPage == null) {
+            return findAllWithoutPagination(isSortedByYear);
+        }
+        return findAllWithPagination(page, booksPerPage, isSortedByYear);
+    }
+
+    private List<Book> findAllWithoutPagination(boolean isSortedByYear) {
+        if (isSortedByYear) {
+            return booksRepository.findAll(Sort.by("year"));
+        }
         return booksRepository.findAll();
+    }
+
+    private List<Book> findAllWithPagination(Integer page, Integer booksPerPage, boolean isSortedByYear) {
+        if (isSortedByYear) {
+            return booksRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("year"))).getContent();
+        }
+        return booksRepository.findAll(PageRequest.of(page, booksPerPage)).getContent();
     }
 
     @Override
@@ -74,5 +92,10 @@ public class BookServiceImpl implements BookService {
     @Override
     public Person getBookOwner(int id) {
         return booksRepository.findById(id).map(Book::getOwner).orElse(null);
+    }
+
+    @Override
+    public List<Book> searchByTitle(String query) {
+        return booksRepository.findByTitleIgnoreCaseStartingWith(query);
     }
 }

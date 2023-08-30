@@ -13,8 +13,6 @@ public interface PeopleService {
     void save(Person person);
     void delete(int id);
     void update(int id, Person updatedPerson);
-
     List<Book> getBooksByPersonId(int id);
-
     Optional<Person> getPersonByFullName(String fullName);
 }
